@@ -1,0 +1,125 @@
+server:
+  port: 9080
+
+
+spring:
+  application:
+    name: api-gateway
+
+  #  security:
+  #    oauth2:
+  #      client:
+  #        registration:
+  #          keycloak:
+  #            provider: keycloak
+  #            client-id: demo_backend
+  #            client-secret: keycloak-secret
+  #        provider:
+  #          keycloak:
+  #            issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/auth/realms/demo
+  #  session:
+  #    store-type: redis
+
+  cloud:
+    gateway:
+      default-filters:
+        - AddRequestHeader=X-Request-Header,capsys
+        - AddResponseHeader=X-Response-Header,mavir
+      routes:
+
+        - id: szep-auth-route
+          uri: ${SZEP_URL:http://localhost:9081}
+          predicates:
+            - Path=/api/szep/units/auth
+          filters:
+            - RewritePath=/api/szep/units/auth,/api/szep/units
+
+        - id: szep-route
+          uri: ${SZEP_URL:http://localhost:9081}
+          predicates:
+            - Path=/api/szep/units
+          filters:
+            - name: Retry
+              args:
+                retries: 5
+                method: GET
+                backoff:
+                  firstBackoff: 500ms
+                  maxBackoff: 2000ms
+
+        - id: szep-cb-route
+          uri: ${SZEP_URL:http://localhost:9081}
+          predicates:
+            - Path=/api/szep/units/cb
+          filters:
+            - RewritePath=/api/szep/units/cb,/api/szep/units
+            - name: CircuitBreaker
+              args:
+                name: szepService
+                fallbackUri: forward:/szep-fallback
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter:
+                  replenishRate: 10 # req/s
+                  burstCapacity: 20
+                  requestedTokens: 1
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      szepService:
+        slidingWindowSize: 10
+        permittedNumberOfCallsInHalfOpenState: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10000
+        registerHealthIndicator: true
+  timelimiter:
+    instances:
+      szepService:
+        timeoutDuration: 3s
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+      show-components: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        all: true
+        http.server.requests: true
+  tracing:
+    sampling:
+      probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        step: 10s
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+
+
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    root: INFO

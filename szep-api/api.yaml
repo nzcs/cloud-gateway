@@ -1,0 +1,74 @@
+openapi: "3.0.3"
+info:
+  title: SZEP API
+  version: "1.0.0"
+
+servers:
+  - url: http://localhost:8081
+
+tags:
+  - name: szep-controller
+
+
+paths:
+
+  /api/szep/units:
+    get:
+      tags:
+        - szep-controller
+      operationId: getUnits
+      parameters:
+        - name: X-Client-Trace-ID
+          in: header
+          description: Optional unique identifier which can be used for tracing. Pattern '^[a-zA-Z0-9._-]+$'
+          schema:
+            type: string
+            maxLength: 35
+            minLength: 1
+      responses:
+        '200':
+          headers:
+            X-Client-Trace-ID:
+              description: Unique identifier received is echoed back in the response
+              schema:
+                type: string
+                maxLength: 35
+                minLength: 1
+          description: Successful query
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UnitDto'
+        default:
+          headers:
+            X-Client-Trace-ID:
+              description: Unique identifier received is echoed back in the response
+              schema:
+                type: string
+                maxLength: 35
+                minLength: 1
+          description: General error response.
+          content:
+            application/json:
+              schema:
+                type: string
+
+
+
+components:
+  schemas:
+
+    UnitDto:
+      type: object
+      properties:
+        eic:
+          type: string
+        name:
+          type: string
+        short_name:
+          type: string
+        type:
+          type: string
+

@@ -1,0 +1,112 @@
+{
+  "id": "demo",
+  "realm": "demo",
+  "enabled": true,
+  "sslRequired": "external",
+  "accessTokenLifespan": 300,
+  "ssoSessionIdleTimeout": 604800,
+  "ssoSessionMaxLifespan": 604800,
+  "clientSessionIdleTimeout": 600,
+  "clientSessionMaxLifespan": 600,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "resetPasswordAllowed": false,
+  "internationalizationEnabled": true,
+  "supportedLocales": [
+    "en",
+    "hu"
+  ],
+  "clients": [
+    {
+      "id": "d59ef907-3ba2-408e-893c-014993c27d39",
+      "clientId": "demo_backend",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "keycloak-secret",
+      "protocol": "openid-connect",
+      "bearerOnly": false,
+      "directAccessGrantsEnabled": false,
+      "attributes": {},
+      "redirectUris": [
+        "http://localhost:9080/login/oauth2/code/*",
+        "http://localhost:9080"
+      ]
+    },
+    {
+      "id": "565df836-89c4-40c2-9405-01a4db082736",
+      "clientId": "demo_client",
+      "enabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "protocol": "openid-connect",
+      "secret": "7fd56c72-4ecb-4714-9eca-fe96e71193ac",
+      "redirectUris": [
+        "*"
+      ],
+      "attributes": {
+        "access.token.lifespan": "28800",
+        "client.session.idle.timeout": "604800",
+        "use.refresh.tokens": "true",
+        "client_credentials.use_refresh_token": "true",
+        "backchannel.logout.session.required": "true"
+      },
+      "defaultClientScopes": [
+        "web-origins",
+        "roles"
+      ],
+      "optionalClientScopes": []
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "User privileges",
+        "containerId": "demo"
+      },
+      {
+        "name": "admin",
+        "description": "Administrator privileges",
+        "containerId": "demo"
+      }
+    ],
+    "client": {
+    }
+  },
+  "groups": [
+    {
+      "id": "ddd6d7e1-ab8e-4014-b9e4-256097132798",
+      "name": "admin group",
+      "path": "/admin group",
+      "clientRoles": {
+        "demo_backend": [
+          "CSBANK_ROLE",
+          "PAYER_PORTAL_CONSUMER_ROLE",
+          "PAYER_PORTAL_ADMIN_ROLE",
+          "CASH_REGISTER_ROLE"
+        ]
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "user",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "1234"
+        }
+      ],
+      "realmRoles": [
+        "default-roles-demo",
+        "admin"
+      ],
+      "groups": [
+        "/admin group"
+      ]
+    }
+  ]
+}
